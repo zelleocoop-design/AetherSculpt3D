@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AetherSculpt 3D \ Spatial Drawing & Sculpting Studio</title>
+  <meta name="description" content="A next-generation in-browser 3D drawing, sculpting, and spatial creation suite with volumetric brushes, true camera-relative 3D movement, collapsible panels, and glTF/OBJ export.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <script async src="https://unpkg.com/es-module-shims@1.8.0/dist/es-module-shims.js"></script>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <div id="canvas-container"></div>
+
+  <main class="studio-ui">
+
+    <header class="top-nav">
+      <div class="brand">
+        <span class="brand-dot"></span>
+        AETHER SCULPT 3D
+      </div>
+
+      <div class="nav-center-toggles">
+        <button id="toggle-materials-btn" class="btn" title="Toggle Materials & Color Palette">
+           <span>Materials & Color</span>
+        </button>
+        <button id="toggle-spatial-btn" class="btn" title="Toggle Canvas & Symmetry Settings">
+           <span>Canvas & Tools</span>
+        </button>
+        <button id="rotate-mode-btn" class="btn" title="Touch Rotate Mode (toggle)"><span>Rotate</span></button>
+      </div>
+        <a href="https://github.com/zelleocoop-design/AetherSculpt" target="_blank" class="github-link" title="GitHub Repository" style="margin-left:auto; margin-right: 10px;">
+          <img src="github-mark.svg" alt="GitHub" style="height:24px;vertical-align:middle;" />
+        </a>
+
+      <div class="action-bar">
+        <button id="undo-btn" class="btn" title="Undo Last Stroke (Ctrl+Z)">↩️ Undo</button>
+        <button id="redo-btn" class="btn" title="Redo Stroke (Ctrl+Y)">↪️ Redo</button>
+        <button id="clear-btn" class="btn" title="Clear Scene Canvas">🗑️ Clear</button>
+        <button id="turntable-btn" class="btn" title="Toggle Turntable 360° Auto-Rotation">🔄 Turntable</button>button>
+
+        <div class="export-dropdown-wrapper">
+          <button id=""export-btn" class="btn btn-primary" title="Export 3D Model">💾 Export ▾</button>
+          <div class="export-dropdown-menu" id="export-dropdown-menu">
+            <button id="export-gltf-btn" class="export-item">📦 3D Model (glTF / .glb)</button>
+            <button id="export-obj-btn" class="export-item">🗿 Wavefront (.obj)</button>
+            <button id="export-png-btn" class="export-item">📸 Screenshot (.png)</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="main-workspace">
+
+      <nav class="floating-pen-bar" title="3D Pen Presets">
+        <button class="pen-icon-btn brush-btn active" data-preset="tube" title="Neon Tube (Volumetric Extrusion)">
+          ⚡
+          <span>Tube</span>
+        </button>
+
+        <button class="pen-icon-btn brush-btn" data-preset="ribbon" title="Calligraphy Ribbon (Camera-Oriented Silk Quad)">
+          🎀
+          <span>Ribbon</span>
+        </button>
+
+        <button class="pen-icon-btn brush-btn" data-preset="sparkle" title="Stardust Particles (Luminous Trails)">
+            ✨
+          <span>Stars</span>
+        </button>
+
+        <button class="pen-icon-btn brush-btn" data-preset="wireframe" title="Wireframe Mesh (Architectural Lattice)">
+          🕸️
+          <span>Wire</span>
+        </button>
+
+        <div class="pen-divider"></div>
+
+        <button class="pen-icon-btn brush-btn" data-preset="crystal" title="Crystals (Geometric Facets)">
+          💎
+          <span>Crystal</span>
+        </button>
+
+        <button class="pen-icon-btn brush-btn" data-preset="voxel" title="Voxel Block (Spatial 3D Cubes)">
+          🧊
+          <span>Voxel</span>
+        </button>
+
+        <button class="pen-icon-btn brush-btn" data-preset="plasma" title="Plasma Arc (Jagged Energy Waves)">
+          🔥
+          <span>Plasma</span>
+        </button>
+      </nav>
+
+      <div id="left-sidebar" class="sidebar-wrapper left-sidebar-wrapper collapsed">
+        <aside class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-title">Styling & Materials</span>
+            <button id="close-left-sidebar" class="close-panel-btn" title="Close Panel">âœ•</button>
+          </div>
+
+          <div>
+            <div class="section-label">Material Shaders</div>
+            <div class="grid-2">
+              <button class="btn mat-btn active" data-material="glow">💡 Glow</button>
+              <button class="btn mat-btn" data-material="metallic">🪙 Chrome</button>
+              <button class="btn mat-btn" data-material="glass">🔮 Glass</button>
+              <button class="btn mat-btn" data-material="glossy">✨ Gloss</button>
+              <button class="btn mat-btn" data-material="iridescent">🦚 Pearl</button>
+              <button class="btn mat-btn" data-material="clay">🏺 Clay</button>
+              <button class="btn mat-btn" data-material="rainbow">🌈 Spectrum</button>
+              <button class="btn mat-btn" data-material="wire">🕸️ Wire</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-label">Color Palette</div>
+            <div class="color-swatches">
+              <div class="color-swatch active" style="background-color: #38bdf8;" data-color="#38bdf8"></div>
+              <div class="color-swatch" style="background-color: #ec4899;" data-color="#ec4899"></div>
+              <div class="color-swatch" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
+              <div class="color-swatch" style="background-color: #10b981;" data-color="#10b981"></div>
+              <div class="color-swatch" style="background-color: #a855f7;" data-color="#a855f7"></div>
+              <div class="color-swatch" style="background-color: #ffffff;" data-color="#ffffff"></div>
+              <div class="color-swatch" style="background-color: #1e1e24;" data-color="#1e1e24"></div>
+            </div>
+            <div class="custom-color-row">
+              <input type="color" id="custom-color" value="#38bdf8">
+              <span style="font-size: 0.75rem; color: var(--text-muted);">Custom Tint</span>
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Glow & Brightness</span>
+              <span id="brightness-val">100%</span>
+            </div>
+            <input type="range" id="brightness-slider" min="10" max="300" step="5" value="100">
+            <div class="depth-shortcuts" style="margin-top: 0.35rem;">
+              <button id="bright-dim-btn" class="mini-btn">Dim (40%)</button>
+              <button id="bright-normal-btn" class="mini-btn active">100%</button>
+              <button id="bright-vivid-btn" class="mini-btn">Super (200%)</button>
+            </div>
+          </div>
+
+          <div class="slider-group">
+            <div class="slider-header">
+              <span>Stroke Size</span>
+              <span id="size-val">0.8</span>
+            </div>
+            <input type="range" id="brush-size" min="0.05" max="3.0" step="0.05" value="0.8">
+          </div>
+        </aside>
+      </div>
+
+      <div id="right-sidebar" class="sidebar-wrapper right-sidebar-wrapper collapsed">
+        <aside class="tool-panel">
+          <div class="panel-header">
+            <span class="panel-title">Spatial Studio</span>
+            <button id="close-right-sidebar" class="close-panel-btn" title="Close Panel">âœ•</button>
+          </div>
+
+          <div>
+            <div class="section-label">Symmetry Engine</div>
+            <div class="grid-2">
+              <button class="btn sym-btn active" data-symmetry="none">Off</button>
+              <button class="btn sym-btn" data-symmetry="mirror_x">Mirror X</button>
+              <button class="btn sym-btn" data-symmetry="mirror_y">Mirror Y</button>
+              <button class="btn sym-btn" data-symmetry="mirror_z">Mirror Z</button>
+              <button class="btn sym-btn" data-symmetry="radial_4">Radial 4x</button>
+              <button class="btn sym-btn" data-symmetry="radial_8">Radial 8x</button>
+            </div>
+          </div>
+
+          <div>
+            <div class="section-label">Drawing Canvas & Distance</div>
+            <div class="grid-2" style="margin-bottom: 0.75rem;">
+              <button class="btn canvas-btn active" data-mode="camera" title="Locked directly in front of where you look">🔒 In Front</button>
+              <button class="btn canvas-btn" data-mode="xy" title="Vertical Front Wall">🧱 Front Wall</button>
+              <button class="btn canvas-btn" data-mode="xz" title="Horizontal Floor">📐 Floor Plane</button>
+              <button class="btn canvas-btn" data-mode="yz" title="Vertical Side Wall">🚪 Side Wall</button>
+                <button class="btn canvas-btn" id="reset-plane-btn" title="Bring drawing plane close to you">📍 Bring Plane Here</button>
+            </div>
+
+            <div class="slider-group">
+              <div class="slider-header">
+                <span id="distance-label">Distance in Front</span>
+                <span id="depth-val">15.0m</span>
+              </div>div>
+              <input type="range" id="plane-depth" min="3" max="50" step="0.5" value="15">
+              <div class="depth-shortcuts">
+                <button id="depth-close-btn" class="mini-btn">Close (6m)</button>
+                <button id="depth-mid-btn" class="mini-btn active">Normal (15m)</button>
+                <button id="depth-far-btn" class="mini-btn">Far (30m)</button>
+              </div>
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.45rem; line-height: 1.35;">
+              ✨ The drawing plane is positioned right where you look at this distance.
+            </div>
+          </div>
+
+          <div>
+            <div class="section-label">Studio Backdrop</div>
+            <div class="grid-2">
+              <button class="btn env-btn active" data-env="cyberpunk">Cyberpunk</button>
+              <button class="btn env-btn" data-env="studio">Studio</button>
+              <button class="btn env-btn" data-env="void">Deep Void</button>
+              <button class="btn env-btn" data-env="sunset">Sunset</button>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+    </div>
+
+    <footer class="bottom-dock">
+      <div class="dock-hint">
+        <span class="key-tag">Left Click</span>
+        <span>Draw in 3D</span>
+      </div>
+      <div class="dock-hint">
+        <span class="key-tag">WASD</span>
+        <span>Fly Viewport</span>
+      </div>
+      <div class="dock-hint">
+        <span class="key-tag">QE</span>
+        <span>Up / Down</span>
+      </div>
+      <div class="dock-hint">
+        <span class="key-tag">Right Drag</span>
+        <span>Look / Rotate</span>
+      </div>
+      <div class="dock-hint">
+        <span class="key-tag">Middle Drag</span>
+        <span>Pan</span>
+      </div>
+      <div class="dock-hint">
+        <span class="key-tag">Shift / Ctrl</span>
+        <span>Speed Boost</span>
+      </div>
+      <div class="dock-hint">
+        <span class="key-tag">1-7</span>
+        <span>Brushes</span>
+      </div>
+      <div class="dock-hint">
+        <span class="key-tag">Tab</span>
+        <span>Zen Mode</span>
+      </div>
+    <div class="credits" style="text-align:center;color:var(--text-muted);font-size:0.75rem;margin-top:0.5rem;">
+      <a href="https://zelleo.web.app/">
+        <img src="Zelleo text back rect.png" alt="Zelleo Logo" style="max-height:35px;" />
+      </a>
+    </div>
+    </footer>
+
+  </main>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
